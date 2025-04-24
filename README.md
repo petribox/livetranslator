@@ -81,9 +81,9 @@ If you want to run the transcription script outside of Docker, e.g., for debuggi
 3) Start translation:
 
 `bundle exec ruby start_rtve_translation.rb`
-
-## Mac users
 ```
+## Mac users
+
 You may run into a Bundler version error on macOS, because system Ruby is outdated:
 "Could not find 'bundler' (2.6.3). bundler requires Ruby >= 3.1.0."
 macOS ships with an outdated system Ruby (2.6.x), which may not support the required Bundler version (2.6.3).
