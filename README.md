@@ -35,10 +35,11 @@ Option A) Either point a local broadcast tool (for example [OBS Studio](https://
 Or 
 
 Option B) Use FFmpeg to simulate a stream (RTVE here) to livetranslation RTMP endpoint:
-
+```
 `ffmpeg -analyzeduration 0 -i 'https://rtvelivesrc2.rtve.es/live-origin/24h-hls/bitrate_3.m3u8' -f flv rtmp://localhost:1935/stream/hello`
-
+```
 ## Use this command inside Docker to pull RTVE and push it to the pipeline:
+```
 docker compose exec livestream ffmpeg \
   -analyzeduration 0 \
   -i 'https://rtvelivesrc2.rtve.es/live-origin/24h-hls/bitrate_3.m3u8' \
@@ -47,7 +48,7 @@ docker compose exec livestream ffmpeg \
   rtmp://localhost:1935/hls/hello_720p2628kbs \
   -c:a mp3 -b:a 128k \
   -f segment -segment_time 2 -strftime 1 /opt/data/live_audio/audio_segment_%s.mp3
-
+```
 Explanation of FFmpeg Parameters
 ```
 -analyzeduration 0        # Skips input probing to reduce startup time
@@ -67,19 +68,22 @@ rtmp://localhost:1935/... # RTMP output stream pushed to NGINX for HLS
 -segment_time 2           # Split files every 2 seconds
 -strftime 1               # Use timestamped filenames
 /opt/data/live_audio/...  # Write audio segments to shared folder for transcription
+```
 
 Dependencies: 
 - Docker (https://www.docker.com/get-started/)
 - Open AI API Key [https://platform.openai.com/docs/guides/speech-to-text](https://platform.openai.com/api-keys)
 
 Set your API key(s) in a .env file:
+```
 OPENAI_API_KEY=sk-...
 DEEPL_API_KEY=...
+```
 
 (Optional) Local Ruby Development Notes
 If you want to run the transcription script outside of Docker, e.g., for debugging:
 3) Start translation:
-
+```
 `bundle exec ruby start_rtve_translation.rb`
 ```
 ## Mac users
