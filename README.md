@@ -17,28 +17,88 @@ i.e. in your terminal:
 export OPENAI_API_KEY=<paste your own api key here>
 export STREAM_KEY_NAME=hello
 ```
-
+## #############################
 ## Quick Proof Of Concept Setup
 
-See the rtve live stream, translated, and displayed in a web browser.
+See the rtve live stream, translated, and displayed in a web browser. 
 
-Bring up the development stack by issuing the docker compose command:
+1. Bring up the development stack by issuing the docker compose command:
 
 `docker compose up`
 
 This will allow you to view the translations live at:
 http://localhost:4567 
 
-Either point a local broadcast tool (for example [OBS Studio](https://obsproject.com/) at the endpoint: `rtmp://localhost:1935/stream` and set the stream key name.
+2. 
+Option A) Either point a local broadcast tool (for example [OBS Studio](https://obsproject.com/) at the endpoint: `rtmp://localhost:1935/stream` and set the stream key name.
 
-Or, use ffmpeg to pull and direct an example stream (RTVe here) to livetranslation RTMP endpoint:
+Or 
+
+Option B) Use FFmpeg to simulate a stream (RTVE here) to livetranslation RTMP endpoint:
 
 `ffmpeg -analyzeduration 0 -i 'https://rtvelivesrc2.rtve.es/live-origin/24h-hls/bitrate_3.m3u8' -f flv rtmp://localhost:1935/stream/hello`
+
+## Use this command inside Docker to pull RTVE and push it to the pipeline:
+docker compose exec livestream ffmpeg \
+  -analyzeduration 0 \
+  -i 'https://rtvelivesrc2.rtve.es/live-origin/24h-hls/bitrate_3.m3u8' \
+  -c:a aac -b:a 128k \
+  -c:v libx264 -b:v 2500k -f flv -g 30 -r 30 -s 1280x720 -preset superfast -profile:v baseline \
+  rtmp://localhost:1935/hls/hello_720p2628kbs \
+  -c:a mp3 -b:a 128k \
+  -f segment -segment_time 2 -strftime 1 /opt/data/live_audio/audio_segment_%s.mp3
+
+Explanation of FFmpeg Parameters
+```
+-analyzeduration 0        # Skips input probing to reduce startup time
+-i <url>                  # Input stream from RTVE
+-c:a aac -b:a 128k        # Encode audio using AAC (128 kbps) for RTMP streaming
+-c:v libx264              # Use x264 for H.264 video encoding
+-b:v 2500k                # Set video bitrate to 2.5 Mbps
+-f flv                    # Required FLV container format for RTMP
+-g 30                     # Keyframe every 30 frames
+-r 30                     # Set frame rate to 30 fps
+-s 1280x720               # Resize to 720p
+-preset superfast         # Use faster encoding preset
+-profile:v baseline       # Use baseline profile for max compatibility
+rtmp://localhost:1935/... # RTMP output stream pushed to NGINX for HLS
+-c:a mp3                  # For the second output, encode audio as MP3
+-f segment                # Enable audio file segmentation
+-segment_time 2           # Split files every 2 seconds
+-strftime 1               # Use timestamped filenames
+/opt/data/live_audio/...  # Write audio segments to shared folder for transcription
 
 Dependencies: 
 - Docker (https://www.docker.com/get-started/)
 - Open AI API Key [https://platform.openai.com/docs/guides/speech-to-text](https://platform.openai.com/api-keys)
 
+Set your API key(s) in a .env file:
+OPENAI_API_KEY=sk-...
+DEEPL_API_KEY=...
+
+(Optional) Local Ruby Development Notes
+If you want to run the transcription script outside of Docker, e.g., for debugging:
+3) Start translation:
+
+`bundle exec ruby start_rtve_translation.rb`
+
+## Mac users
+```
+You may run into a Bundler version error on macOS, because system Ruby is outdated:
+"Could not find 'bundler' (2.6.3). bundler requires Ruby >= 3.1.0."
+macOS ships with an outdated system Ruby (2.6.x), which may not support the required Bundler version (2.6.3).
+
+Quick fix: 
+brew install rbenv ruby-build
+rbenv install 3.2.2
+rbenv global 3.2.2
+
+correct version for bundler:
+gem install bundler -v 2.6.3
+bundle _2.6.3_ install
+
+
+## #############################
 ## How To Run In Codespaces
 
 GitHub allows you to develop in a web-based IDE, that looks like VSCode.
