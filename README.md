@@ -89,14 +89,16 @@ You may run into a Bundler version error on macOS, because system Ruby is outdat
 macOS ships with an outdated system Ruby (2.6.x), which may not support the required Bundler version (2.6.3).
 
 Quick fix: 
+```
 brew install rbenv ruby-build
 rbenv install 3.2.2
 rbenv global 3.2.2
-
+```
 correct version for bundler:
+```
 gem install bundler -v 2.6.3
 bundle _2.6.3_ install
-
+```
 
 ## #############################
 ## How To Run In Codespaces
